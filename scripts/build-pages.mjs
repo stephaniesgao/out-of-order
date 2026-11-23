@@ -16,5 +16,6 @@ for(const file of ['index.html','style.css']){const p=resolve(out,file);await wr
 const index=resolve(out,'index.html');await writeFile(index,(await readFile(index,'utf8'))
  .replace('once per signed-in account, or per browser for guests','once per browser player session')
  .replace('A persistent HTTP-only cookie identifies guest browsers. Clearing it can make a guest count as a new player.','Supabase creates an anonymous player session stored in this browser. Clearing browser storage or switching browsers can create a new player.')
- .replace('refreshing or clearing local progress does not restart them','refreshing does not restart them'));
+ .replace('refreshing or clearing local progress does not restart them','refreshing does not restart them')
+ .replace('Personal stats stay in this browser.','Detailed daily attempts are kept for 7 days and individual results for 30 days. Anonymous player identities and daily aggregate percentages are retained. Personal stats stay in this browser.'));
 await writeFile(resolve(out,'.nojekyll'),'');console.log('Built GitHub Pages site with Supabase backend');

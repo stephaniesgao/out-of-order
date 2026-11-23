@@ -64,3 +64,20 @@ test('optimized requests use bounded database calls and carry final comparisons'
   const limits=(await db.query('select requests from public.ooo_request_limits where player=$1',[PLAYER])).rows[0];assert.equal(limits.requests,4);
  }finally{await db.close()}
 });
+
+test('retention removes only expired detail while preserving totals and current games',async()=>{
+ const {db}=await setup();try{
+  const recent=create();
+  for(const age of [0,7,8,30,31]){
+   await db.query("insert into public.ooo_sessions(game_version,day,player,state) values($1,current_date-$2::integer,$3,$4)",[GAME_VERSION,age,PLAYER,JSON.stringify(recent)]);
+   await db.query("insert into public.ooo_results(game_version,day,player,attempts,solved,correct) values($1,current_date-$2::integer,$3,1,true,5)",[GAME_VERSION,age,PLAYER]);
+   await db.query("insert into public.ooo_totals(game_version,day,bins,first_correct) values($1,current_date-$2::integer,array[1,0,0,0],array[1,1,1,1,1])",[GAME_VERSION,age]);
+  }
+  await db.query("insert into public.ooo_request_limits values($1,now()-interval '2 days',10)",[PLAYER]);
+  const removed=(await db.query('select public.ooo_cleanup() as data')).rows[0].data;assert.deepEqual(removed,{sessions:3,results:1,limits:1});
+  assert.equal((await db.query('select count(*)::int as n from public.ooo_totals')).rows[0].n,5);
+  assert.deepEqual((await db.query('select (current_date-day)::int as age from public.ooo_sessions order by day desc')).rows.map(r=>r.age),[0,7]);
+  assert.equal((await db.query('select count(*)::int as n from public.ooo_results')).rows[0].n,4);
+  await db.exec('set role authenticated');await assert.rejects(db.query('select public.ooo_cleanup()'),/permission denied/);await db.exec('reset role');
+ }finally{await db.close()}
+});

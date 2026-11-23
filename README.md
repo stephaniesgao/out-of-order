@@ -66,3 +66,9 @@ Run the isolated PostgreSQL workload with `node scripts/load-local.mjs`. It simu
 `scripts/load-hosted.mjs` is a deliberately bounded hosted test: four temporary anonymous guests, 40 read requests before and 40 after deployment, and at most ten concurrent requests. It requires `LOAD_TEST_CONFIRM=out-of-order` plus `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `GAME_ORIGIN`. It waits between phases. Never expand it into an unbounded production stress test. Guest IDs are recorded under ignored `.local/load-test/players.json`; tokens remain in process memory. Remove only these test guests and their unfinished sessions after testing. No daily scores are submitted.
 
 Fewer queries do not remove Supabase's monthly active user, function invocation, storage, or bandwidth limits. A viral-scale capacity claim requires a separate staging environment and a larger sustained test.
+
+## Storage retention
+
+The `out-of-order-retention` PostgreSQL cron job runs hourly at minute 17. It removes detailed attempts older than seven days, individual outcomes older than thirty days, and inactive rate-limit counters older than one day. Each run removes at most 5,000 rows per table, allowing a large backlog to drain in batches. Daily aggregate percentages and anonymous Auth identities remain; browser personal stats are unaffected. Retained identity lets returning players keep their session. Recent and current daily games are never removed. PostgreSQL normally reuses reclaimed table space through autovacuum rather than immediately shrinking the database file.
+
+This maintenance runs inside PostgreSQL and consumes no Edge Function invocations. `ooo_cleanup` is inaccessible to browser roles. Its migration installs the named cron job on hosted Supabase; the local test engine tests the cleanup function without a scheduler.
