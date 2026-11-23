@@ -22,7 +22,7 @@ var QUESTIONS = [
   q("century", "time", "Years in a century", 100, "years", "anchor", "time", "A century is one hundred years: ten decades."),
   q("decade", "time", "Years in a decade", 10, "years", "anchor", "time", "A decade is ten years."),
   q("piano", "music", "Keys on a full-size piano", 88, "keys", "medium", "piano", "A standard full-size piano has 88 keys. Smaller keyboards can have fewer.", "https://usa.yamaha.com/musical-instruments/pianos/products/p-series/p-225/specs.html", "Yamaha"),
-  q("piano-white", "music", "White keys on a full-size piano", 52, "white keys", "medium", "piano", "A standard 88-key piano has 52 white keys and 36 black keys. You can count seven complete A-to-G groups plus the final C.", "https://en.wikipedia.org/wiki/Piano", "Piano reference"),
+  q("piano-white", "music", "White keys on a full-size piano", 52, "white keys", "medium", "piano", "A standard 88-key piano has 52 white keys and 36 black keys. Seven full groups of seven white keys, plus the extra A, B and final C, give 49 + 3 = 52.", "https://en.wikipedia.org/wiki/Piano", "Piano reference"),
   q("piano-black", "music", "Black keys on a full-size piano", 36, "black keys", "medium", "piano", "The black keys repeat in groups of two and three. Across a standard 88-key piano, there are 36 black keys.", "https://en.wikipedia.org/wiki/Piano", "Piano reference"),
   q("adult-teeth", "body", "Teeth in a full adult set, including wisdom teeth", 32, "teeth", "medium", "human-teeth", "A complete adult set has sixteen teeth in each jaw, including four wisdom teeth. Not everyone keeps or develops all of them.", "https://www.mouthhealthy.org/all-topics-a-z/eruption-charts", "American Dental Association"),
   q("baby-teeth", "body", "Teeth in a complete set of baby teeth", 20, "teeth", "medium", "human-teeth", "A complete set of baby teeth has ten in the top jaw and ten in the bottom: twenty altogether.", "https://www.mouthhealthy.org/all-topics-a-z/baby-teeth.aspx/", "American Dental Association"),
@@ -34,11 +34,40 @@ var QUESTIONS = [
   q("dog-teeth", "animals", "Teeth in a full adult dog\u2019s set", 42, "teeth", "surprise", "dog", "A full adult dog\u2019s set normally has 42 permanent teeth.", "https://www.merckvetmanual.com/dog-owners/digestive-disorders-of-dogs/dental-development-of-dogs", "Merck Veterinary Manual"),
   q("bee-eyes", "animals", "Eyes on a honeybee", 5, "eyes", "surprise", "bee", "Two large compound eyes and three small simple eyes make five in total.", "https://extension.arizona.edu/sites/extension.arizona.edu/files/pubs/az2011-2022.pdf", "University of Arizona")
 ];
+var HARD_START = "2026-11-24";
+var extra = [
+  q("cat-teeth", "animals", "Teeth in a full adult cat\u2019s set", 30, "teeth", "surprise", "cat", "A complete adult cat dentition has 30 permanent teeth.", "https://www.merckvetmanual.com/cat-owners/digestive-disorders-of-cats/dental-development-of-cats", "Merck Veterinary Manual"),
+  q("jenga", "games", "Wooden blocks in a classic Jenga set", 54, "blocks", "surprise", "jenga", "The classic tower starts with 18 layers of three blocks.", "https://www.hasbro.com/common/instruct/jenga.pdf", "Hasbro rules"),
+  q("liberty-height", "places", "Statue of Liberty, ground to torch, in metres (rounded)", 93, "metres", "surprise", "liberty", "The statue and pedestal together reach about 92.99 metres, rounded here to 93.", "https://www.nps.gov/stli/learn/historyculture/statue-statistics.htm", "National Park Service"),
+  q("big-ben-height", "places", "Elizabeth Tower (Big Ben), in metres (rounded)", 96, "metres", "surprise", "big-ben", "The tower is 96.3 metres tall, rounded here to the nearest metre. Big Ben is the bell inside.", "https://www.parliament.uk/about/living-heritage/building/palace/architecture/palacestructure/towers-of-parliament/", "UK Parliament"),
+  q("london-eye", "places", "Height of the London Eye, in metres", 135, "metres", "surprise", "london-eye", "The observation wheel reaches 135 metres.", "https://www.londoneye.com/plan-your-visit/information-and-support/faqs/", "London Eye"),
+  q("eiffel-height", "places", "Eiffel Tower including its antenna, in metres", 330, "metres", "surprise", "eiffel", "The antenna installed in March 2022 brought the tower to 330 metres.", "https://www.toureiffel.paris/en/news/history-and-culture/300-330-meters-story-towers-height", "Eiffel Tower"),
+  q("wimbledon-draw", "sport", "Players starting Wimbledon\u2019s men\u2019s singles main draw", 128, "players", "surprise", "tennis", "Seven knockout rounds take a full draw of 128 players down to one champion. Qualifying is separate.", "https://assets.wimbledon.com/archive/draws/pdfs/draws/2025_MS_A4.pdf", "Wimbledon"),
+  q("skeleton", "body", "Bones in the usual textbook adult human skeleton", 206, "bones", "surprise", "skeleton", "The conventional count is 206 named bones. Individual anatomy can vary.", "https://training.seer.cancer.gov/anatomy/skeletal/review.html", "National Cancer Institute"),
+  q("die-total", "games", "Total dots across every face of a normal die", 21, "dots", "reasoning", "die", "Add 1 + 2 + 3 + 4 + 5 + 6, or pair the opposite faces: three pairs of seven."),
+  q("domino-set", "games", "Tiles in a double-six domino set, including blanks", 28, "tiles", "reasoning", "domino", "There are seven possible values, from blank to six. Count each unordered pair, including doubles: 7 + 6 + 5 + 4 + 3 + 2 + 1 = 28."),
+  q("deck-red-pips", "games", "Suit symbols on all red number cards, 2 through 10", 108, "symbols", "reasoning", "cards", "Count the central suit symbols, excluding corner indices. One suit has 2 + 3 + \u2026 + 10 = 54; hearts and diamonds together make 108."),
+  q("handshakes", "everyday", "Handshakes if 12 people each greet everyone else once", 66, "handshakes", "reasoning", "handshakes", "Each of 12 people greets 11 others, but that counts each handshake twice: 12 \xD7 11 \xF7 2 = 66."),
+  q("weekend-hours", "time", "Hours from Friday at 6 pm to Monday at 9 am", 63, "hours", "reasoning", "time", "Friday 6 pm to Sunday 6 pm is 48 hours. Add 15 more hours to Monday 9 am: 63. Assume no clock change."),
+  q("quarter-hours", "time", "Quarter-hour slots in a whole day", 96, "slots", "reasoning", "time", "Four fifteen-minute slots fit in each hour. Multiply 24 \xD7 4 = 96."),
+  q("two-days-hours", "time", "Hours in two days and three quarters of a day", 66, "hours", "reasoning", "time", "Two full days make 48 hours. Three quarters of 24 is 18: 48 + 18 = 66."),
+  q("square-foot", "everyday", "Square inches in one square foot", 144, "square inches", "reasoning", "area", "A foot is 12 inches long. A one-foot square is 12 \xD7 12 = 144 square inches."),
+  q("tiles-border", "everyday", "Tiles around the edge of a 20-by-20 square patio", 76, "tiles", "reasoning", "patio", "Count 20 on the top and bottom, then 18 on each side so corners count once: 20 + 20 + 18 + 18 = 76."),
+  q("triangular-stack", "food", "Oranges in a triangular display with 12 in its bottom row", 78, "oranges", "reasoning", "oranges", "The rows contain 1 through 12 oranges. Pair first with last: 12 \xD7 13 \xF7 2 = 78."),
+  q("book-leaves", "words", "Sheets of paper in a 240-page book, excluding covers", 120, "sheets", "reasoning", "book", "Each sheet has two numbered sides: 240 \xF7 2 = 120. Assume every side is included in the page count."),
+  q("stair-climb", "everyday", "Steps climbed going from floor 1 to floor 9, 18 per floor", 144, "steps", "reasoning", "stairs", "There are eight gaps between floors 1 and 9: 8 \xD7 18 = 144."),
+  q("pizza-pairs", "food", "Different two-topping pizzas using 16 toppings", 120, "combinations", "reasoning", "pizza", "Choose two different toppings; order does not matter. There are 16 \xD7 15 \xF7 2 = 120 pairs."),
+  q("photo-prints", "everyday", "Photos in a 15-by-15 grid with its centre photo removed", 224, "photos", "reasoning", "photos", "The full grid holds 15 \xD7 15 = 225 photos. Removing one leaves 224."),
+  q("sum-clock", "everyday", "Sum of all the hour numbers on an ordinary clock face", 78, "total", "reasoning", "clock", "Add 1 through 12: six pairs that each total thirteen make 78."),
+  q("ribbon", "everyday", "Centimetres left from 3 metres of ribbon after cutting off 85 cm", 215, "centimetres", "reasoning", "ribbon", "Three metres is 300 centimetres: 300 \u2212 85 = 215.")
+];
+var HARD_QUESTIONS = [...QUESTIONS.filter((f) => f.difficulty === "medium" || f.id === "dog-teeth"), ...extra];
+var ALL_QUESTIONS = [...QUESTIONS, ...extra];
 
 // public/order.mjs
 var GAME_VERSION = "order-v3";
-var TITLES = Object.fromEntries(QUESTIONS.map((q2) => [q2.id, q2.title]));
-var facts = QUESTIONS;
+var TITLES = Object.fromEntries(ALL_QUESTIONS.map((q2) => [q2.id, q2.title]));
+var facts = ALL_QUESTIONS;
 var day = () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
 function random(seed) {
   let h = 2166136261;
@@ -58,10 +87,25 @@ function shuffle(array, r) {
   }
   return a;
 }
+var hardDeals;
+function hardDeal(r) {
+  if (!hardDeals) {
+    hardDeals = [];
+    const medium = HARD_QUESTIONS.filter((f) => f.difficulty === "medium"), surprise = HARD_QUESTIONS.filter((f) => f.difficulty === "surprise"), reasoning = HARD_QUESTIONS.filter((f) => f.difficulty === "reasoning");
+    for (const a of reasoning) for (let i = 0; i < medium.length; i++) for (let j = i + 1; j < medium.length; j++) for (let k = 0; k < surprise.length; k++) for (let l = k + 1; l < surprise.length; l++) {
+      const cards = [a, medium[i], medium[j], surprise[k], surprise[l]], values = cards.map((f) => f.answer).sort((a2, b) => a2 - b);
+      if (new Set(values).size !== 5 || new Set(cards.map((f) => f.family)).size !== 5 || new Set(cards.map((f) => f.topic)).size < 3 || cards.some((f) => cards.filter((x) => x.topic === f.topic).length > 2) || values[4] / values[0] > 4) continue;
+      if (values.slice(1).filter((v, i2) => v / values[i2] <= 1.3).length < 2) continue;
+      hardDeals.push(cards);
+    }
+    if (!hardDeals.length) throw Error("No balanced challenging puzzles");
+  }
+  return [...hardDeals[Math.floor(r() * hardDeals.length)]];
+}
 function create(mode = "daily", seed = day()) {
-  const r = random(GAME_VERSION + ":" + (mode === "practice" ? "practice:" : "") + seed), chosen = [];
-  for (const difficulty of ["surprise", "medium", "anchor", "anchor", "anchor"]) {
-    const options = shuffle(facts.filter((f2) => f2.difficulty === difficulty), r);
+  const r = random(GAME_VERSION + ":" + (mode === "practice" ? "practice:" : "") + seed), hard = mode === "practice" || seed >= HARD_START, chosen = hard ? hardDeal(r) : [];
+  for (const difficulty of hard ? [] : ["surprise", "medium", "anchor", "anchor", "anchor"]) {
+    const options = shuffle(QUESTIONS.filter((f2) => f2.difficulty === difficulty), r);
     const f = options.find((f2) => !chosen.some((x) => x.id === f2.id || x.answer === f2.answer || x.family === f2.family) && chosen.filter((x) => x.topic === f2.topic).length < 2 && !(f2.answer <= 10 && chosen.some((x) => x.answer <= 10)));
     if (!f) throw Error("Could not build a balanced puzzle");
     chosen.push(f);

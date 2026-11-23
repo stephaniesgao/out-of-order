@@ -22,7 +22,7 @@ q('year-days','time','Days in a year that is not a leap year',365,'days','anchor
 q('century','time','Years in a century',100,'years','anchor','time','A century is one hundred years: ten decades.'),
 q('decade','time','Years in a decade',10,'years','anchor','time','A decade is ten years.'),
 q('piano','music','Keys on a full-size piano',88,'keys','medium','piano','A standard full-size piano has 88 keys. Smaller keyboards can have fewer.','https://usa.yamaha.com/musical-instruments/pianos/products/p-series/p-225/specs.html','Yamaha'),
-q('piano-white','music','White keys on a full-size piano',52,'white keys','medium','piano','A standard 88-key piano has 52 white keys and 36 black keys. You can count seven complete A-to-G groups plus the final C.','https://en.wikipedia.org/wiki/Piano','Piano reference'),
+q('piano-white','music','White keys on a full-size piano',52,'white keys','medium','piano','A standard 88-key piano has 52 white keys and 36 black keys. Seven full groups of seven white keys, plus the extra A, B and final C, give 49 + 3 = 52.','https://en.wikipedia.org/wiki/Piano','Piano reference'),
 q('piano-black','music','Black keys on a full-size piano',36,'black keys','medium','piano','The black keys repeat in groups of two and three. Across a standard 88-key piano, there are 36 black keys.','https://en.wikipedia.org/wiki/Piano','Piano reference'),
 q('adult-teeth','body','Teeth in a full adult set, including wisdom teeth',32,'teeth','medium','human-teeth','A complete adult set has sixteen teeth in each jaw, including four wisdom teeth. Not everyone keeps or develops all of them.','https://www.mouthhealthy.org/all-topics-a-z/eruption-charts','American Dental Association'),
 q('baby-teeth','body','Teeth in a complete set of baby teeth',20,'teeth','medium','human-teeth','A complete set of baby teeth has ten in the top jaw and ten in the bottom: twenty altogether.','https://www.mouthhealthy.org/all-topics-a-z/baby-teeth.aspx/','American Dental Association'),
@@ -34,3 +34,34 @@ q('giraffe-neck','animals','Neck bones in a giraffe',7,'neck bones','surprise','
 q('dog-teeth','animals','Teeth in a full adult dog’s set',42,'teeth','surprise','dog','A full adult dog’s set normally has 42 permanent teeth.','https://www.merckvetmanual.com/dog-owners/digestive-disorders-of-dogs/dental-development-of-dogs','Merck Veterinary Manual'),
 q('bee-eyes','animals','Eyes on a honeybee',5,'eyes','surprise','bee','Two large compound eyes and three small simple eyes make five in total.','https://extension.arizona.edu/sites/extension.arizona.edu/files/pubs/az2011-2022.pdf','University of Arizona')
 ];
+
+// Challenging but approachable: familiar objects, estimates, and short reasoning.
+export const HARD_START='2026-11-24';
+const extra=[
+q('cat-teeth','animals','Teeth in a full adult cat’s set',30,'teeth','surprise','cat','A complete adult cat dentition has 30 permanent teeth.','https://www.merckvetmanual.com/cat-owners/digestive-disorders-of-cats/dental-development-of-cats','Merck Veterinary Manual'),
+q('jenga','games','Wooden blocks in a classic Jenga set',54,'blocks','surprise','jenga','The classic tower starts with 18 layers of three blocks.','https://www.hasbro.com/common/instruct/jenga.pdf','Hasbro rules'),
+q('liberty-height','places','Statue of Liberty, ground to torch, in metres (rounded)',93,'metres','surprise','liberty','The statue and pedestal together reach about 92.99 metres, rounded here to 93.','https://www.nps.gov/stli/learn/historyculture/statue-statistics.htm','National Park Service'),
+q('big-ben-height','places','Elizabeth Tower (Big Ben), in metres (rounded)',96,'metres','surprise','big-ben','The tower is 96.3 metres tall, rounded here to the nearest metre. Big Ben is the bell inside.','https://www.parliament.uk/about/living-heritage/building/palace/architecture/palacestructure/towers-of-parliament/','UK Parliament'),
+q('london-eye','places','Height of the London Eye, in metres',135,'metres','surprise','london-eye','The observation wheel reaches 135 metres.','https://www.londoneye.com/plan-your-visit/information-and-support/faqs/','London Eye'),
+q('eiffel-height','places','Eiffel Tower including its antenna, in metres',330,'metres','surprise','eiffel','The antenna installed in March 2022 brought the tower to 330 metres.','https://www.toureiffel.paris/en/news/history-and-culture/300-330-meters-story-towers-height','Eiffel Tower'),
+q('wimbledon-draw','sport','Players starting Wimbledon’s men’s singles main draw',128,'players','surprise','tennis','Seven knockout rounds take a full draw of 128 players down to one champion. Qualifying is separate.','https://assets.wimbledon.com/archive/draws/pdfs/draws/2025_MS_A4.pdf','Wimbledon'),
+q('skeleton','body','Bones in the usual textbook adult human skeleton',206,'bones','surprise','skeleton','The conventional count is 206 named bones. Individual anatomy can vary.','https://training.seer.cancer.gov/anatomy/skeletal/review.html','National Cancer Institute'),
+q('die-total','games','Total dots across every face of a normal die',21,'dots','reasoning','die','Add 1 + 2 + 3 + 4 + 5 + 6, or pair the opposite faces: three pairs of seven.'),
+q('domino-set','games','Tiles in a double-six domino set, including blanks',28,'tiles','reasoning','domino','There are seven possible values, from blank to six. Count each unordered pair, including doubles: 7 + 6 + 5 + 4 + 3 + 2 + 1 = 28.'),
+q('deck-red-pips','games','Suit symbols on all red number cards, 2 through 10',108,'symbols','reasoning','cards','Count the central suit symbols, excluding corner indices. One suit has 2 + 3 + … + 10 = 54; hearts and diamonds together make 108.'),
+q('handshakes','everyday','Handshakes if 12 people each greet everyone else once',66,'handshakes','reasoning','handshakes','Each of 12 people greets 11 others, but that counts each handshake twice: 12 × 11 ÷ 2 = 66.'),
+q('weekend-hours','time','Hours from Friday at 6 pm to Monday at 9 am',63,'hours','reasoning','time','Friday 6 pm to Sunday 6 pm is 48 hours. Add 15 more hours to Monday 9 am: 63. Assume no clock change.'),
+q('quarter-hours','time','Quarter-hour slots in a whole day',96,'slots','reasoning','time','Four fifteen-minute slots fit in each hour. Multiply 24 × 4 = 96.'),
+q('two-days-hours','time','Hours in two days and three quarters of a day',66,'hours','reasoning','time','Two full days make 48 hours. Three quarters of 24 is 18: 48 + 18 = 66.'),
+q('square-foot','everyday','Square inches in one square foot',144,'square inches','reasoning','area','A foot is 12 inches long. A one-foot square is 12 × 12 = 144 square inches.'),
+q('tiles-border','everyday','Tiles around the edge of a 20-by-20 square patio',76,'tiles','reasoning','patio','Count 20 on the top and bottom, then 18 on each side so corners count once: 20 + 20 + 18 + 18 = 76.'),
+q('triangular-stack','food','Oranges in a triangular display with 12 in its bottom row',78,'oranges','reasoning','oranges','The rows contain 1 through 12 oranges. Pair first with last: 12 × 13 ÷ 2 = 78.'),
+q('book-leaves','words','Sheets of paper in a 240-page book, excluding covers',120,'sheets','reasoning','book','Each sheet has two numbered sides: 240 ÷ 2 = 120. Assume every side is included in the page count.'),
+q('stair-climb','everyday','Steps climbed going from floor 1 to floor 9, 18 per floor',144,'steps','reasoning','stairs','There are eight gaps between floors 1 and 9: 8 × 18 = 144.'),
+q('pizza-pairs','food','Different two-topping pizzas using 16 toppings',120,'combinations','reasoning','pizza','Choose two different toppings; order does not matter. There are 16 × 15 ÷ 2 = 120 pairs.'),
+q('photo-prints','everyday','Photos in a 15-by-15 grid with its centre photo removed',224,'photos','reasoning','photos','The full grid holds 15 × 15 = 225 photos. Removing one leaves 224.'),
+q('sum-clock','everyday','Sum of all the hour numbers on an ordinary clock face',78,'total','reasoning','clock','Add 1 through 12: six pairs that each total thirteen make 78.'),
+q('ribbon','everyday','Centimetres left from 3 metres of ribbon after cutting off 85 cm',215,'centimetres','reasoning','ribbon','Three metres is 300 centimetres: 300 − 85 = 215.')
+];
+export const HARD_QUESTIONS=[...QUESTIONS.filter(f=>f.difficulty==='medium'||f.id==='dog-teeth'),...extra];
+export const ALL_QUESTIONS=[...QUESTIONS,...extra];
