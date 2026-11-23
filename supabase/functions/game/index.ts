@@ -128,7 +128,7 @@ function makeHandler({ rpc: rpc2, user: user2, origins: origins2, today = day })
   return async (request) => {
     const origin = request.headers.get("origin"), allowed = !origin || origins2.includes(origin);
     const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "vary": "Origin" };
-    if (origin && allowed) Object.assign(headers, { "access-control-allow-origin": origin, "access-control-allow-headers": "authorization, apikey, content-type, x-client-info", "access-control-allow-methods": "GET, POST, OPTIONS" });
+    if (origin && allowed) Object.assign(headers, { "access-control-allow-origin": origin, "access-control-allow-headers": "authorization, apikey, content-type, x-client-info", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-max-age": "3600" });
     const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers });
     if (!allowed) return json({ error: "This origin is not allowed." }, 403);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
@@ -138,19 +138,20 @@ function makeHandler({ rpc: rpc2, user: user2, origins: origins2, today = day })
       if (!token?.startsWith("Bearer ")) return json({ error: "A player session is required." }, 401);
       const player = await user2(token);
       if (!player) return json({ error: "Your player session expired. Reload to continue." }, 401);
-      if (!await rpc2("ooo_allow", { p_player: player })) return json({ error: "Too many requests. Try again in a minute." }, 429);
       const url2 = new URL(request.url), route = url2.pathname.split("/").pop(), date = url2.searchParams.get("day") || today();
       if (!["session", "daily"].includes(route)) return json({ error: "Not found." }, 404);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0, 10) !== date || date > today()) return json({ error: "Invalid puzzle date." }, 400);
       const args = { p_game: GAME_VERSION, p_day: date, p_player: player };
+      const throttled = () => json({ error: "Too many requests. Try again in a minute." }, 429);
+      const stats = (saved2) => ({ day: date, ...comparison(saved2.bins.map((count, i) => ({ count, solved: i < 3, attempts: i + 1 })), saved2.result, Object.fromEntries(saved2.first.map((value, i) => ["p" + i, value]))) });
       if (route === "daily") {
         if (request.method !== "GET") return json({ error: "Finish the daily using Check order." }, 405);
-        const saved2 = await rpc2("ooo_read", args), rows = saved2.bins.map((count, i) => ({ count, solved: i < 3, attempts: i + 1 })), positions = Object.fromEntries(saved2.first.map((value, i) => ["p" + i, value]));
-        return json({ day: date, ...comparison(rows, saved2.result, positions) });
+        const saved2 = await rpc2("ooo_stats", args);
+        return saved2.rate_limited ? throttled() : json(stats(saved2));
       }
       if (date !== today()) return json({ error: "A new daily is available. Open the Daily tab." }, 400);
-      const response = (saved2, status = 200) => json({ day: date, state: saved2.state, revision: saved2.revision, completed: !!saved2.result || !!saved2.state?.done, result: saved2.result }, status);
-      if (request.method === "GET") return response(await rpc2("ooo_read", args));
+      const response = (saved2, status = 200) => saved2.rate_limited ? throttled() : json({ day: date, state: saved2.state, revision: saved2.revision, completed: !!saved2.result || !!saved2.state?.done, result: saved2.result, ...saved2.result ? { comparison: stats(saved2) } : {} }, status);
+      if (request.method === "GET") return response(await rpc2("ooo_load", args));
       if (!request.headers.get("content-type")?.startsWith("application/json")) return json({ error: "Send a JSON request." }, 415);
       if (Number(request.headers.get("content-length") || 0) > 16e3) return json({ error: "Request too large." }, 413);
       const text = await request.text();
@@ -162,9 +163,10 @@ function makeHandler({ rpc: rpc2, user: user2, origins: origins2, today = day })
       } catch {
         return json({ error: "Invalid request." }, 400);
       }
-      if (body.action === "resume") return response(await rpc2("ooo_resume", { ...args, p_state: create("daily", date) }));
+      if (body.action === "resume") return response(await rpc2("ooo_resume_v2", { ...args, p_state: create("daily", date) }));
       if (body.action !== "check") return json({ error: "Invalid daily action." }, 400);
-      const saved = await rpc2("ooo_read", args);
+      const saved = await rpc2("ooo_load", args);
+      if (saved.rate_limited) return throttled();
       if (saved.result || saved.state?.done) return response(saved);
       if (!saved.state || !Number.isInteger(body.revision) || body.revision !== saved.revision) return response(saved, 409);
       let next;

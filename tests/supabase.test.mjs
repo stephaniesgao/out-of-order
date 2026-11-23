@@ -1,17 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {create,solution,day,GAME_VERSION} from '../public/order.mjs';
 import {makeHandler} from '../supabase/game-handler.mjs';
 const PLAYER='11111111-1111-4111-8111-111111111111',ORIGIN='https://stephaniesgao.github.io';
 async function setup(){
  const db=new PGlite();await db.exec('create role anon; create role authenticated; create role service_role bypassrls;');
- await db.exec(await readFile(new URL('../supabase/migrations/20261123010000_game.sql',import.meta.url),'utf8'));
- const rpc=async(name,body)=>{const entries=Object.entries(body),sql=`select public.${name}(${entries.map(([key],i)=>`${key} => $${i+1}`).join(',')}) as data`;return(await db.query(sql,entries.map(([,value])=>typeof value==='object'?JSON.stringify(value):value))).rows[0].data};
+ for(const file of (await readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8'));
+ const calls=[];const rpc=async(name,body)=>{calls.push(name);const entries=Object.entries(body),sql=`select public.${name}(${entries.map(([key],i)=>`${key} => $${i+1}`).join(',')}) as data`;return(await db.query(sql,entries.map(([,value])=>typeof value==='object'?JSON.stringify(value):value))).rows[0].data};
  const handler=makeHandler({rpc,user:async token=>token==='Bearer good'?PLAYER:null,origins:[ORIGIN]});
  const request=async(route,body,extra={})=>{const r=await handler(new Request('https://example.supabase.co/functions/v1/game/'+route,{method:body?'POST':'GET',headers:{origin:ORIGIN,authorization:'Bearer good','content-type':'application/json',...extra},body:body?JSON.stringify(body):undefined}));return{status:r.status,data:await r.json()}};
- return {db,rpc,request};
+ return {db,rpc,request,calls};
 }
 test('Supabase uses authoritative daily checks and commits a result only once',async()=>{
  const {db,request}=await setup();try{
@@ -51,5 +51,16 @@ test('Supabase rejects invalid identity, origin, card orders, uploads, and exces
   assert.equal((await request('session?day=2020-01-01',{action:'resume'})).status,400);
   for(let i=0;i<60;i++)await request('daily');
   assert.equal((await request('daily')).status,429);
+ }finally{await db.close()}
+});
+
+test('optimized requests use bounded database calls and carry final comparisons',async()=>{
+ const {db,request,calls}=await setup();try{
+  let r=await request('session',{action:'resume'});assert.deepEqual(calls.splice(0),['ooo_resume_v2']);
+  const truth=solution(r.data.state);r=await request('session',{action:'check',revision:0,order:truth});
+  assert.deepEqual(calls.splice(0),['ooo_load','ooo_check']);assert.equal(r.data.comparison.mine.solved,true);assert.deepEqual(r.data.comparison.percentages,[100,0,0,0]);
+  await request('daily');assert.deepEqual(calls.splice(0),['ooo_stats']);
+  const raw=(await db.query('select public.ooo_stats($1,$2,$3) as data',[GAME_VERSION,day(),PLAYER])).rows[0].data;assert.equal('state' in raw,false);
+  const limits=(await db.query('select requests from public.ooo_request_limits where player=$1',[PLAYER])).rows[0];assert.equal(limits.requests,4);
  }finally{await db.close()}
 });

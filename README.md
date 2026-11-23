@@ -54,3 +54,15 @@ Results rank by solved-in-one, two, three, then unsolved. Ties split evenly. Per
 The database stores anonymous player UUIDs, puzzle dates, progress, check counts, and outcomes. The browser holds its own auth session and personal stats. No name or email is requested by the game. Old ChatGPT-hosted player cookies cannot be carried across domains; the Supabase launch starts a new player cohort. Old records are retained on the previous backend until separately removed.
 
 The original Sites worker and D1 migrations are retained as source history. No local database or deployment credentials belong in this repository.
+
+## Usage optimizations and load checks
+
+A normal completed daily uses one Edge Function request to resume, then one per check. The final response includes the comparison, avoiding a second request. It performs 3/5/7 database API round trips for one/two/three checks (previously 9/12/15). Request throttling is combined with data loading; it still counts each player request once. Comparison refreshes reuse results for 30 seconds and cannot overlap. Browsers may cache CORS preflights for an hour.
+
+The percentages endpoint reads only a compact result and daily aggregate. It never downloads attempt history or scans all players. Existing primary keys cover the game/date/player and game/date lookups. Data access permissions and 60-request-per-minute protection are unchanged.
+
+Run the isolated PostgreSQL workload with `node scripts/load-local.mjs`. It simulates 500 players with 50 queued workers, races duplicate completions, and checks that exactly 500 results and aggregate contributions exist. PGlite runs locally and serializes SQL, so this measures correctness under queued work, not hosted capacity.
+
+`scripts/load-hosted.mjs` is a deliberately bounded hosted test: four temporary anonymous guests, 40 read requests before and 40 after deployment, and at most ten concurrent requests. It requires `LOAD_TEST_CONFIRM=out-of-order` plus `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `GAME_ORIGIN`. It waits between phases. Never expand it into an unbounded production stress test. Guest IDs are recorded under ignored `.local/load-test/players.json`; tokens remain in process memory. Remove only these test guests and their unfinished sessions after testing. No daily scores are submitted.
+
+Fewer queries do not remove Supabase's monthly active user, function invocation, storage, or bandwidth limits. A viral-scale capacity claim requires a separate staging environment and a larger sustained test.
