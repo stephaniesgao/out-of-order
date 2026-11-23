@@ -1,0 +1,3 @@
+[functions.game]
+# The gateway and handler both verify player tokens.
+verify_jwt = true

@@ -1,0 +1,5 @@
+.local/
+node_modules/
+pages-dist/
+.env*
+supabase/.temp/

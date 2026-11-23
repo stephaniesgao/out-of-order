@@ -1,0 +1,7 @@
+import {createServer} from 'node:http';
+import {mkdir,readFile} from 'node:fs/promises';
+import {DatabaseSync,d1} from './local-db.mjs';
+import worker from '../dist/server/index.js';
+await mkdir(new URL('../.local/',import.meta.url),{recursive:true});const db=new DatabaseSync(new URL('../.local/comparisons.sqlite',import.meta.url).pathname);const exists=db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='daily_results'").get();if(!exists)db.exec(await readFile(new URL('../drizzle/0000_daily_results.sql',import.meta.url),'utf8'));
+const hasSessions=db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='daily_sessions'").get();if(!hasSessions)db.exec(await readFile(new URL('../drizzle/0001_daily_sessions.sql',import.meta.url),'utf8'));
+const env={DB:d1(db)};const server=createServer(async(req,res)=>{try{let chunks=[];for await(const c of req)chunks.push(c);const method=req.method,url=`http://127.0.0.1:4176${req.url}`,headers=new Headers(req.headers);const request=new Request(url,{method,headers,body:['GET','HEAD'].includes(method)?undefined:Buffer.concat(chunks)});const response=await worker.fetch(request,env);res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()))}catch(error){console.error(error);res.writeHead(500);res.end('Local preview error')}});server.listen(4176,'127.0.0.1',()=>console.log('Local: http://127.0.0.1:4176'));process.on('SIGINT',()=>server.close(()=>{db.close();process.exit(0)}));
